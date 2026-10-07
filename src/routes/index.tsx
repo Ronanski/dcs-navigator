@@ -52,7 +52,7 @@ function Index() {
   const base = useMemo(() => (ds ? search(ds, { q: dq, stn, kind: "all", group: "" }) : []), [ds, dq, stn]);
   const counts = useMemo(() => {
     const c: Record<string, number> = { all: base.length, io: 0, mem: 0, relay: 0, ser: 0 };
-    for (const r of base) c[r.kind]++;
+    for (const r of base) c[r.kind] = (c[r.kind] ?? 0) + 1;
     return c;
   }, [base]);
   const inTab = useMemo(() => (tab === "all" || tab === "modbus" ? base : base.filter((r) => r.kind === tab)), [base, tab]);
@@ -173,7 +173,7 @@ function Index() {
   );
 }
 
-function Chip({ active, onClick, children, color, small, title }: { active: boolean; onClick: () => void; children: React.ReactNode; color?: string; small?: boolean; title?: string }) {
+function Chip({ active, onClick, children, color, small, title }: { active: boolean; onClick: () => void; children: React.ReactNode; color?: string; small?: boolean; title?: string | undefined }) {
   return (
     <button
       type="button"
@@ -305,7 +305,7 @@ function ModbusView({ ds, q }: { ds: Dataset; q: string }) {
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
                 <thead className="bg-secondary/50 text-[11px] uppercase tracking-wider text-muted-foreground">
-                  <tr>{head.map((h, i) => <th key={i} className="whitespace-nowrap px-3 py-2 font-semibold">{h}</th>)}</tr>
+                  <tr>{(head ?? []).map((h, i) => <th key={i} className="whitespace-nowrap px-3 py-2 font-semibold">{h}</th>)}</tr>
                 </thead>
                 <tbody className="divide-y">
                   {body.map((r, i) => (

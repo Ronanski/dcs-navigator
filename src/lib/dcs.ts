@@ -10,7 +10,7 @@ export interface Rec {
   desc: string;
   group: string;
   data: Row;
-  wire?: Row;
+  wire?: Row | undefined;
   hay: string;
 }
 
@@ -87,7 +87,7 @@ export async function loadDataset(): Promise<Dataset> {
   for (const w of wireMap.values()) {
     recs.push({
       id: id++, kind: "io", stn: Number(w["stn"]), addr: String(w["addr"]), tag: String(w["tag"] ?? ""), desc: String(w["desc"] ?? ""),
-      group: w["sheet"] === "DO" ? "DO" : w["sheet"] === "DI" ? "DI" : "AI", data: { stn: w["stn"], addr: w["addr"], tag: w["tag"] ?? "", desc: w["desc"] ?? "" }, wire: w,
+      group: w["sheet"] === "DO" ? "DO" : w["sheet"] === "DI" ? "DI" : "AI", data: { stn: w["stn"] ?? "", addr: w["addr"] ?? "", tag: w["tag"] ?? "", desc: w["desc"] ?? "" }, wire: w,
       hay: hayOf(Object.values(w) as string[]),
     });
   }
