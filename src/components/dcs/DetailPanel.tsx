@@ -83,8 +83,8 @@ function Chain({ steps }: { steps: Array<{ title: string; items: Array<[string, 
 function IoBody({ r, ds, open }: { r: Rec; ds: Dataset; open: (r: Rec) => void }) {
   const d = r.data as Row;
   const w = (r.wire ?? {}) as Row;
-  const analog = r.group === "AI" || r.group === "AO" || d.lo || d.hi;
-  const sab = d.sab ? ds.byKey.get(keyOf(r.stn, String(d.sab)))?.find((x) => x.kind === "mem") : undefined;
+  const analog = r.group === "AI" || r.group === "AO" || d["lo"] || d["hi"];
+  const sab = d["sab"] ? ds.byKey.get(keyOf(r.stn, String(d["sab"])))?.find((x) => x.kind === "mem") : undefined;
   return (
     <>
       <Section icon={<Tag className="size-3.5" />} title="Identification">
@@ -92,13 +92,13 @@ function IoBody({ r, ds, open }: { r: Rec; ds: Dataset; open: (r: Rec) => void }
           items={[
             ["Station", `STN ${r.stn}`],
             ["DCS address", r.addr, true],
-            ["Signal type", d.type ?? r.group],
-            ["Node", d.node ?? w.node, true],
-            ["I/O unit", d.unit, true],
-            ["Point no.", d.no, true],
-            ["Graphic", d.pict],
-            ["Revision", d.rev],
-            ["Remark", d.remark],
+            ["Signal type", d["type"] ?? r.group],
+            ["Node", d["node"] ?? w["node"], true],
+            ["I/O unit", d["unit"], true],
+            ["Point no.", d["no"], true],
+            ["Graphic", d["pict"]],
+            ["Revision", d["rev"]],
+            ["Remark", d["remark"]],
           ]}
         />
       </Section>
@@ -107,18 +107,18 @@ function IoBody({ r, ds, open }: { r: Rec; ds: Dataset; open: (r: Rec) => void }
           <div className="flex items-end gap-3">
             <div className="flex-1 rounded-md border bg-secondary p-3">
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Base scale</div>
-              <div className="font-mono text-lg">{d.lo || "—"}</div>
+              <div className="font-mono text-lg">{d["lo"] || "—"}</div>
             </div>
             <ArrowRight className="mb-4 size-4 text-muted-foreground" />
             <div className="flex-1 rounded-md border bg-secondary p-3">
               <div className="text-[11px] uppercase tracking-wider text-muted-foreground">Full scale</div>
-              <div className="font-mono text-lg">{d.hi || "—"}</div>
+              <div className="font-mono text-lg">{d["hi"] || "—"}</div>
             </div>
-            <div className="rounded-md border border-primary/40 bg-primary/10 px-3 py-3 font-mono text-sm text-primary">{d.eu || "—"}</div>
+            <div className="rounded-md border border-primary/40 bg-primary/10 px-3 py-3 font-mono text-sm text-primary">{d["eu"] || "—"}</div>
           </div>
         </Section>
       )}
-      {d.sab && (
+      {d["sab"] && (
         <Section icon={<Bell className="size-3.5" />} title="Signal abnormal">
           <button
             type="button"
@@ -126,22 +126,22 @@ function IoBody({ r, ds, open }: { r: Rec; ds: Dataset; open: (r: Rec) => void }
             onClick={() => sab && open(sab)}
             className="flex w-full items-center justify-between rounded-md border bg-secondary px-3 py-2 text-left text-sm transition-colors enabled:hover:border-primary/50"
           >
-            <span className="font-mono text-primary">{String(d.sab)}</span>
-            <span className="truncate pl-3 text-muted-foreground">{sab?.data.Remark ?? sab?.desc ?? "Alarm bit"}</span>
+            <span className="font-mono text-primary">{String(d["sab"])}</span>
+            <span className="truncate pl-3 text-muted-foreground">{sab?.data["Remark"] ?? sab?.desc ?? "Alarm bit"}</span>
           </button>
         </Section>
       )}
       <Section icon={<Cable className="size-3.5" />} title="Wiring path · field to controller">
         <Chain
           steps={[
-            { title: "Field / Junction box", items: [["JB", w.jb], ["JB TB", w.jbTb], ["Cable", w.fieldCab], ["Spec", w.fieldSpec]] },
-            { title: "Marshalling panel", items: [["Panel", w.mpl], ["TB strip", w.mplTb], ["TB no.", w.mplTbNo]] },
-            { title: "Interconnect cable", items: [["Cable", w.cab], ["Spec", w.cabSpec], ["Core", w.core]] },
+            { title: "Field / Junction box", items: [["JB", w["jb"]], ["JB TB", w["jbTb"]], ["Cable", w["fieldCab"]], ["Spec", w["fieldSpec"]]] },
+            { title: "Marshalling panel", items: [["Panel", w["mpl"]], ["TB strip", w["mplTb"]], ["TB no.", w["mplTbNo"]]] },
+            { title: "Interconnect cable", items: [["Cable", w["cab"]], ["Spec", w["cabSpec"]], ["Core", w["core"]]] },
             {
               title: "FCS panel",
-              items: [["Panel", w.fcsPanel], ["Relay", w.relay], ["D/W", w.dw], ["O/P", w.op], ["TB strip", w.ebTb], ["TB no.", w.ebTbNo], ["Board", w.board], ["Int. cable", w.intCab], ["Signal", w.sig]],
+              items: [["Panel", w["fcsPanel"]], ["Relay", w["relay"]], ["D/W", w["dw"]], ["O/P", w["op"]], ["TB strip", w["ebTb"]], ["TB no.", w["ebTbNo"]], ["Board", w["board"]], ["Int. cable", w["intCab"]], ["Signal", w["sig"]]],
             },
-            { title: "Controller I/O", items: [["FCS", w.fcs], ["Node", w.node], ["Slot", w.slot], ["Channel", w.ch], ["Address", w.addr]] },
+            { title: "Controller I/O", items: [["FCS", w["fcs"]], ["Node", w["node"]], ["Slot", w["slot"]], ["Channel", w["ch"]], ["Address", w["addr"]]] },
           ]}
         />
       </Section>
@@ -171,15 +171,15 @@ function RelayBody({ r }: { r: Rec }) {
   return (
     <>
       <Section icon={<Tag className="size-3.5" />} title="Point">
-        <Fields items={[["Panel", d.panel], ["Item", d.item, true], ["Station", r.stn ? `STN ${r.stn}` : ""], ["DCS address", d.addr, true], ["Remark", d.remark]]} />
+        <Fields items={[["Panel", d["panel"]], ["Item", d["item"], true], ["Station", r.stn ? `STN ${r.stn}` : ""], ["DCS address", d["addr"], true], ["Remark", d["remark"]]]} />
       </Section>
       <Section icon={<Cable className="size-3.5" />} title="Signal path">
         <Chain
           steps={[
-            { title: "Field / source", items: [["From", d.field], ["Cable", d.fieldCab]] },
-            { title: "Relay panel", items: [["Panel", d.relayPanel], ["Input TB", d.inTb], ["TB no.", d.inTbNo], ["Relay", d.relay], ["Output TB", d.outTb], ["TB no.", d.outTbNo]] },
-            { title: "Interconnect cable", items: [["Cable", d.cab], ["Spec", d.spec], ["Core", d.core]] },
-            { title: "Marshalling / DCS", items: [["Panel", d.mpl], ["TB", d.mplTb], ["TB no.", d.mplTbNo], ["FCS", d.fcs], ["Address", d.addr]] },
+            { title: "Field / source", items: [["From", d["field"]], ["Cable", d["fieldCab"]]] },
+            { title: "Relay panel", items: [["Panel", d["relayPanel"]], ["Input TB", d["inTb"]], ["TB no.", d["inTbNo"]], ["Relay", d["relay"]], ["Output TB", d["outTb"]], ["TB no.", d["outTbNo"]]] },
+            { title: "Interconnect cable", items: [["Cable", d["cab"]], ["Spec", d["spec"]], ["Core", d["core"]]] },
+            { title: "Marshalling / DCS", items: [["Panel", d["mpl"]], ["TB", d["mplTb"]], ["TB no.", d["mplTbNo"]], ["FCS", d["fcs"]], ["Address", d["addr"]]] },
           ]}
         />
       </Section>
@@ -193,9 +193,9 @@ function SerBody({ r }: { r: Rec }) {
     <Section icon={<Cable className="size-3.5" />} title="Event recorder path">
       <Chain
         steps={[
-          { title: "Source panel", items: [["Panel", d.mpl], ["TB", d.mplTb], ["TB no.", d.mplTbNo]] },
-          { title: "Cable", items: [["Cable", d.cab], ["Spec", d.spec], ["Core", d.core]] },
-          { title: "SER panel", items: [["Panel", d.serPanel], ["TB", d.serTb], ["TB no.", d.serTbNo], ["Point", d.point], ["Item", d.item]] },
+          { title: "Source panel", items: [["Panel", d["mpl"]], ["TB", d["mplTb"]], ["TB no.", d["mplTbNo"]]] },
+          { title: "Cable", items: [["Cable", d["cab"]], ["Spec", d["spec"]], ["Core", d["core"]]] },
+          { title: "SER panel", items: [["Panel", d["serPanel"]], ["TB", d["serTb"]], ["TB no.", d["serTbNo"]], ["Point", d["point"]], ["Item", d["item"]]] },
         ]}
       />
     </Section>

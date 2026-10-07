@@ -72,41 +72,41 @@ export async function loadDataset(): Promise<Dataset> {
   let id = 0;
 
   const wireMap = new Map<string, Row>();
-  for (const w of raw.wire as Row[]) wireMap.set(keyOf(Number(w.stn), String(w.addr)), w);
+  for (const w of raw.wire as Row[]) wireMap.set(keyOf(Number(w["stn"]), String(w["addr"])), w);
 
   for (const r of raw.io as Row[]) {
-    const stn = Number(r.stn);
-    const wire = wireMap.get(keyOf(stn, String(r.addr)));
-    if (wire) wireMap.delete(keyOf(stn, String(r.addr)));
+    const stn = Number(r["stn"]);
+    const wire = wireMap.get(keyOf(stn, String(r["addr"])));
+    if (wire) wireMap.delete(keyOf(stn, String(r["addr"])));
     recs.push({
-      id: id++, kind: "io", stn, addr: String(r.addr), tag: String(r.tag ?? ""), desc: String(r.desc ?? ""),
-      group: ioGroup(String(r.type ?? "")), data: r, wire,
+      id: id++, kind: "io", stn, addr: String(r["addr"]), tag: String(r["tag"] ?? ""), desc: String(r["desc"] ?? ""),
+      group: ioGroup(String(r["type"] ?? "")), data: r, wire,
       hay: hayOf([...Object.values(r), ...(wire ? Object.values(wire) : [])] as string[]),
     });
   }
   for (const w of wireMap.values()) {
     recs.push({
-      id: id++, kind: "io", stn: Number(w.stn), addr: String(w.addr), tag: String(w.tag ?? ""), desc: String(w.desc ?? ""),
-      group: w.sheet === "DO" ? "DO" : w.sheet === "DI" ? "DI" : "AI", data: { stn: w.stn, addr: w.addr, tag: w.tag ?? "", desc: w.desc ?? "" }, wire: w,
+      id: id++, kind: "io", stn: Number(w["stn"]), addr: String(w["addr"]), tag: String(w["tag"] ?? ""), desc: String(w["desc"] ?? ""),
+      group: w["sheet"] === "DO" ? "DO" : w["sheet"] === "DI" ? "DI" : "AI", data: { stn: w["stn"], addr: w["addr"], tag: w["tag"] ?? "", desc: w["desc"] ?? "" }, wire: w,
       hay: hayOf(Object.values(w) as string[]),
     });
   }
   for (const m of raw.mem as Row[]) {
     recs.push({
-      id: id++, kind: "mem", stn: Number(m.stn), addr: String(m.addr), tag: "", desc: String(m.desc ?? ""),
-      group: String(m.cat), data: m, hay: hayOf(Object.values(m) as string[]),
+      id: id++, kind: "mem", stn: Number(m["stn"]), addr: String(m["addr"]), tag: "", desc: String(m["desc"] ?? ""),
+      group: String(m["cat"]), data: m, hay: hayOf(Object.values(m) as string[]),
     });
   }
   for (const r of raw.relay as Row[]) {
     recs.push({
-      id: id++, kind: "relay", stn: Number(r.stn) || 0, addr: String(r.addr ?? ""), tag: String(r.tag ?? ""),
-      desc: String(r.field ?? ""), group: String(r.panel), data: r, hay: hayOf(Object.values(r) as string[]),
+      id: id++, kind: "relay", stn: Number(r["stn"]) || 0, addr: String(r["addr"] ?? ""), tag: String(r["tag"] ?? ""),
+      desc: String(r["field"] ?? ""), group: String(r["panel"]), data: r, hay: hayOf(Object.values(r) as string[]),
     });
   }
   for (const r of raw.ser as Row[]) {
     recs.push({
-      id: id++, kind: "ser", stn: 0, addr: `Point ${r.point ?? r.item}`, tag: String(r.tag ?? ""), desc: String(r.desc ?? ""),
-      group: String(r.panel), data: r, hay: hayOf(Object.values(r) as string[]),
+      id: id++, kind: "ser", stn: 0, addr: `Point ${r["point"] ?? r["item"]}`, tag: String(r["tag"] ?? ""), desc: String(r["desc"] ?? ""),
+      group: String(r["panel"]), data: r, hay: hayOf(Object.values(r) as string[]),
     });
   }
 
@@ -117,8 +117,8 @@ export async function loadDataset(): Promise<Dataset> {
     else byKey.set(k, [r]);
   };
   for (const r of recs) {
-    if (r.addr) add(keyOf(r.stn, r.addr), r);
-    if (r.tag) add(`tag|${r.tag.toLowerCase()}`, r);
+    if (r["addr"]) add(keyOf(r["stn"], r["addr"]), r);
+    if (r["tag"]) add(`tag|${r["tag"].toLowerCase()}`, r);
   }
   return { recs, modbus: raw.modbus, byKey };
 }
@@ -136,22 +136,22 @@ export function search(ds: Dataset, f: Filters): Rec[] {
   const qn = q.replace(/\./g, "");
   const out: { r: Rec; s: number }[] = [];
   for (const r of ds.recs) {
-    if (f.stn && r.stn !== f.stn) continue;
+    if (f.stn && r["stn"] !== f.stn) continue;
     if (f.kind !== "all" && r.kind !== f.kind) continue;
     if (f.group && r.group !== f.group) continue;
     if (tokens.length) {
       let ok = true;
       for (const t of tokens) if (!r.hay.includes(t)) { ok = false; break; }
       if (!ok) continue;
-      const a = r.addr.toLowerCase();
-      const g = r.tag.toLowerCase();
+      const a = r["addr"].toLowerCase();
+      const g = r["tag"].toLowerCase();
       let s = 0;
       if (a === q || a.replace(/\./g, "") === qn || g === q) s = 100;
       else if (g.startsWith(q) || a.startsWith(q)) s = 60;
       else if (g.includes(q) || a.includes(q)) s = 40;
-      else if (r.desc.toLowerCase().includes(q)) s = 20;
+      else if (r["desc"].toLowerCase().includes(q)) s = 20;
       if (r.kind === "io") s += 5;
-      if (r.kind === "mem" && /^used$/i.test(r.desc)) s -= 10;
+      if (r.kind === "mem" && /^used$/i.test(r["desc"])) s -= 10;
       out.push({ r, s });
     } else out.push({ r, s: 0 });
   }
@@ -162,12 +162,12 @@ export function search(ds: Dataset, f: Filters): Rec[] {
 export function related(ds: Dataset, r: Rec): Rec[] {
   const set = new Map<number, Rec>();
   const push = (arr?: Rec[]) => arr?.forEach((x) => x.id !== r.id && set.set(x.id, x));
-  if (r.tag) push(ds.byKey.get(`tag|${r.tag.toLowerCase()}`));
-  if (r.addr && r.kind !== "ser") push(ds.byKey.get(keyOf(r.stn, r.addr)));
-  if (r.kind === "io" && r.data.sab) push(ds.byKey.get(keyOf(r.stn, String(r.data.sab))));
+  if (r["tag"]) push(ds.byKey.get(`tag|${r["tag"].toLowerCase()}`));
+  if (r["addr"] && r.kind !== "ser") push(ds.byKey.get(keyOf(r["stn"], r["addr"])));
+  if (r.kind === "io" && r.data["sab"]) push(ds.byKey.get(keyOf(r["stn"], String(r.data["sab"]))));
   if (r.kind === "mem") {
     for (const x of ds.recs)
-      if (x.kind === "io" && x.stn === r.stn && String(x.data.sab ?? "").toLowerCase() === r.addr.toLowerCase()) set.set(x.id, x);
+      if (x.kind === "io" && x.stn === r["stn"] && String(x.data["sab"] ?? "").toLowerCase() === r["addr"].toLowerCase()) set.set(x.id, x);
   }
   return [...set.values()].slice(0, 30);
 }
